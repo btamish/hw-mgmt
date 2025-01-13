@@ -386,13 +386,12 @@ mqm97xx_power_voltmon_connect_table=( mp2975 0x62 5 voltmon1 \
 			mp2975 0x6c 5 voltmon6 \
 			mp2975 0x6e 5 voltmon7 )
 
-mqm97xx_pdb_connect_table=( raa228000 0x60 4 pwr_conv1 \
-			raa228000 0x61 4 pwr_conv2 \
+mqm97xx_pdb_connect_table=( raa228000 0x61 4 pdb_pwr_conv1 \
 			lm5066i	0x12 4 pdb_hotswap1 \
 			lm5066i	0x14 4 pdb_hotswap2 \
-			24c04  0x50 4 pdb_eeprom  \
 			tmp451 0x4c 4 pdb_mos_amb \
-			tmp1075 0x4e 4 pdb_intel_amb)
+			tmp1075 0x4e 4 pdb_intel_amb \
+			24c02 0x50 4 pdb_eeprpm )
 	   
 e3597_base_connect_table=(    max11603 0x6d 5 \
 			tmp102 0x49 7 \
@@ -628,6 +627,7 @@ q3200_named_busses=( asic1 2 asic2 18 pwr 4 vr1 5 vr2 21 fan-amb 6 port-amb 7 vp
 q3400_named_busses=( asic1 2 asic2 18 asic3 34 asic4 50 pwr1 4 pwr2 3 vr1 5 vr2 21 vr3 37 vr4 53 fan-amb 6 port-amb 7 vpd 8 )
 smart_switch_named_busses=( asic1 2 pwr 4 vr1 5 amb1 7 vpd 8 dpu1 17 dpu2 18 dpu3 19 dpu4 20)
 n5110ld_named_busses=( asic1 11 vr 13 pwr1 14 pwr2 30 amb 15 pcb_amb 16 vpd 2 cart1 58 cart2 59 cart3 60 cart4 61)
+
 sn5640_named_busses=( asic1 2 pwr 4 vr1 5 fan-amb 6 port-amb 7 vpd 8 )
 
 ACTION=$1
@@ -1703,6 +1703,7 @@ mqm97xx_specific()
 	hotplug_fans=7
 	echo 29500 > $config_path/fan_max_speed
 	echo 5000 > $config_path/fan_min_speed
+	echo 7 > $config_path/fan_drwr_num
 	echo 3 > $config_path/cpld_num
 	echo "$reset_dflt_attr_num" > $config_path/reset_attr_num
 }
