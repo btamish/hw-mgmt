@@ -289,8 +289,6 @@ if [ "$1" == "add" ]; then
 		find_i2c_bus
 		i2c_comex_mon_bus_default=$(< $i2c_comex_mon_bus_default_file)
 		comex_bus=$((i2c_comex_mon_bus_default+i2c_bus_offset))
-		# Verify if this is ASIC sensor
-		asic_bus=$((i2c_asic_bus_default+i2c_bus_offset))
 		if [ -f $config_path/cx_default_i2c_bus ]; then
 			cx_i2c_bus=$(< $config_path/cx_default_i2c_bus)
 			cx_i2c_bus=$((cx_i2c_bus+i2c_bus_offset))
@@ -298,14 +296,26 @@ if [ "$1" == "add" ]; then
 		busdir=$(echo "$3""$4" |xargs dirname |xargs dirname)
 		busfolder=$(basename "$busdir")
 		bus="${busfolder:0:${#busfolder}-5}"
+		# Verify if this is ASIC sensor
+		if [ ! -f "$config_path/asic_num" ]; then
+			asic_num=1
+		else
+			asic_num=$(< $config_path/asic_num)
+		fi
+		for ((i=1; i<=asic_num; i+=1)); do
+			asic_i2c_bus_id=$(< $config_path/asic"$i"_i2c_bus_id)
+			asic_bus=$((asic_i2c_bus_id+i2c_bus_offset))
+			if [ "$bus" == "$asic_bus" ]; then
+				exit 0
+			fi
+		done
+
 		if [ "$bus" == "$comex_bus" ]; then
 			if [ $2 == cx_amb ]; then
 				check_n_link "$3""$4"/temp2_input $thermal_path/cx_amb
 			else
 				check_n_link "$3""$4"/temp1_input $thermal_path/comex_amb
 			fi
-		elif [ "$bus" == "$asic_bus" ]; then
-			exit 0
 		elif [ $bus -eq $cx_i2c_bus ]; then
 			check_n_link "$3""$4"/temp2_input $thermal_path/cx_amb
 		else
@@ -739,7 +749,10 @@ if [ "$1" == "add" ]; then
 		else
 			asic_num=$(< $config_path/asic_num)
 		fi
-		if [ ! -d /sys/module/mlxsw_minimal ]; then
+		if [ -f "$config_path"/minimal_unsupported ]; then
+			minimal_unsupported=$(< $config_path/minimal_unsupported)
+		fi
+		if [ ${minimal_unsupported} -eq 0 ] && [ ! -d /sys/module/mlxsw_minimal ]; then
 			modprobe mlxsw_minimal
 		fi
 		for ((i=1; i<=asic_num; i+=1)); do
@@ -894,8 +907,7 @@ if [ "$1" == "add" ]; then
 		sleep 1
 		# Set I2C bus for psu
 		echo "$bus" > $config_path/"$psu_name"_i2c_bus
-		# Set default fan speed
-		psu_set_fan_speed "$psu_name" $(< $fan_psu_default)
+
 		# Add thermal attributes
 		check_n_link "$5""$3"/temp1_input $thermal_path/"$psu_name"_temp1
 		check_n_link "$5""$3"/temp1_max $thermal_path/"$psu_name"_temp1_max
@@ -923,8 +935,10 @@ if [ "$1" == "add" ]; then
 		fi
 		psu_connect_power_sensor "$5""$3"/power1 "$psu_name"_power_in
 		psu_connect_power_sensor "$5""$3"/power2 "$psu_name"_power
+		psu_connect_power_sensor "$5""$3"/power2 "$psu_name"_power_out
 		psu_connect_power_sensor "$5""$3"/curr1 "$psu_name"_curr_in
 		psu_connect_power_sensor "$5""$3"/curr2 "$psu_name"_curr
+		psu_connect_power_sensor "$5""$3"/curr2 "$psu_name"_curr_out
 
 		# Allow modification for some PSU thresholds through 'sensors'
 		# utilities 'sets instruction.
@@ -1041,6 +1055,22 @@ if [ "$1" == "add" ]; then
 		# PSU FW VER
 		mfr=$(grep MFR_NAME $eeprom_path/"$psu_name"_vpd | awk '{print $2}')
 		cap=$(grep CAPACITY $eeprom_path/"$psu_name"_vpd | awk '{print $2}')
+
+		# Don't set default PSU FAN speed for Delta 2000 on HI172 - let's PSU FW handle it
+		if [[ "$cap" != "2000" || $sku != "HI172" || $mfr != "DELTA" ]]; then
+		    psu_set_fan_speed "$psu_name" $(< $fan_psu_default)
+		fi
+
+		if [[ "$cap" == "1100" && $mfr == "DELTA" ]]; then
+			out_crit=$(<"$thermal_path"/"$psu_name"_volt_out_crit)
+			out_lcrit=$(((out_crit*662)/1000))
+			out_min=$(((out_crit*745)/1000))
+			out_max=$(((out_crit*952)/1000))
+			echo $out_max > "$power_path"/"$psu_name"_volt_out_max
+			echo $out_min > "$power_path"/"$psu_name"_volt_out_min
+			echo $out_lcrit > "$power_path"/"$psu_name"_volt_out_lcrit
+		fi
+
 		if echo $mfr | grep -iq "Murata"; then
 			# Support FW update only for specific Murata PSU capacities
 			fw_ver="N/A"
@@ -1099,7 +1129,10 @@ if [ "$1" == "add" ]; then
 
 	fi
 	if [ "$2" == "sxcore" ]; then
-		if [ ! -d /sys/module/mlxsw_minimal ]; then
+		if [ -f "$config_path"/minimal_unsupported ]; then
+			minimal_unsupported=$(< $config_path/minimal_unsupported)
+		fi
+		if [ ${minimal_unsupported} -eq 0 ] && [ ! -d /sys/module/mlxsw_minimal ]; then
 			modprobe mlxsw_minimal
 		fi
 		/usr/bin/hw-management.sh chipup 0 "$4/$5"
@@ -1162,7 +1195,10 @@ elif [ "$1" == "change" ]; then
 			exit 0
 		fi
 		if [ "$3" == "up" ]; then
-			if [ ! -d /sys/module/mlxsw_minimal ]; then
+			if [ -f "$config_path"/minimal_unsupported ]; then
+				minimal_unsupported=$(< $config_path/minimal_unsupported)
+			fi
+			if [ ${minimal_unsupported} -eq 0 ] && [ ! -d /sys/module/mlxsw_minimal ]; then
 				modprobe mlxsw_minimal
 			fi
 			# Run automatic chipup based on ASIC health event only in special CI/verification OSes.

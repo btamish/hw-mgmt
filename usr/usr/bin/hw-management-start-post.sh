@@ -72,9 +72,23 @@ if [ ! -f /var/run/hw-management/system/cpld_base ]; then
 	timeout 5 bash -c 'until [ -f /var/run/hw-management/system/cpld_base ]; do sleep 0.2; done'
 fi
 
+# Create the links for the sensors which doesn't have emulation drivers
+if check_simx; then
+        if check_if_simx_supported_platform; then
+                case $sku in
+                        HI166)
+                                process_simx_links
+                                ;;
+                        *)
+                                ;;
+                esac
+
+        fi
+fi
+
 ## Check SKU and run the below only for relevant.
 case $sku in
-	HI130|HI151|HI157|HI158|HI162|HI166|HI167|HI169|HI170|HI171|HI172|HI173|HI174|HI176|HI177)
+	HI130|HI151|HI157|HI158|HI162|HI166|HI167|HI169|HI170|HI171|HI172|HI173|HI174|HI175|HI176|HI177)
 		# Only for MQM9700
                 ui_tree_archive_file="$(get_ui_tree_archive_file)"
                 if [ -e "$ui_tree_archive_file" ]; then

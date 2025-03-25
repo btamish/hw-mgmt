@@ -258,9 +258,9 @@ SENSOR_DEF_CONFIG = {
                          "input_suffix": "_input", "input_smooth_level": 2
                         },
     r'pch':             {"type": "thermal_sensor",
-                         "pwm_min": 30, "pwm_max": 60, "val_min": 50000, "val_max": 85000,
-                         "val_lcrit": 0, "val_hcrit": 150000, "poll_time": 10,
-                         "input_suffix": "_temp", "value_hyst": 2, "input_smooth_level": 2, "enable": 0
+                         "pwm_min": 30, "pwm_max": 100, "val_min": 70000, "val_max": 108000,
+                         "val_lcrit": 0, "val_hcrit": 150000, "poll_time": 3,
+                         "input_suffix": "_temp", "value_hyst": 2, "input_smooth_level": 3, "enable": 0
                         },
     r'comex_amb':       {"type": "thermal_sensor",
                          "pwm_min": 30, "pwm_max": 60, "val_min": 45000, "val_max": 85000, "value_hyst": 2, "poll_time": 3, "enable": 0
@@ -481,6 +481,10 @@ def g_get_dmin(thermal_table, temp, path, interpolated=False):
         return CONST.PWM_MIN
     # get current range
     dmin, range_min, range_max = g_get_range_val(line, temp)
+    if not dmin:
+        dmin, _, _ = g_get_range_val(line, 100)
+        return dmin
+
     if not interpolated:
         return dmin
 
@@ -1490,15 +1494,16 @@ class thermal_sensor(system_device):
 
     def __init__(self, cmd_arg, sys_config, name, tc_logger):
         system_device.__init__(self, cmd_arg, sys_config, name, tc_logger)
+        scale_value = self.get_file_val(self.base_file_name + "_scale", def_val=1, scale=1)
+        self.scale = CONST.TEMP_SENSOR_SCALE / scale_value
+        self.val_lcrit = self.read_val_min_max(None, "val_lcrit", self.scale)
+        self.val_hcrit = self.read_val_min_max(None, "val_hcrit", self.scale)
 
     # ----------------------------------------------------------------------
     def sensor_configure(self):
         """
         @summary: this function calling on sensor start after initialization or resume
         """
-        scale_value = self.get_file_val(self.base_file_name + "_scale", def_val=1, scale=1)
-        self.scale = CONST.TEMP_SENSOR_SCALE / scale_value
-
         self.val_min = self.read_val_min_max("{}_min".format(self.base_file_name), "val_min", self.scale)
         self.val_max = self.read_val_min_max("{}_max".format(self.base_file_name), "val_max", self.scale)
 
@@ -1573,6 +1578,10 @@ class thermal_module_sensor(system_device):
 
     def __init__(self, cmd_arg, sys_config, name, tc_logger):
         system_device.__init__(self, cmd_arg, sys_config, name, tc_logger)
+        scale_value = self.get_file_val(self.base_file_name + "_scale", def_val=1, scale=1)
+        self.scale = CONST.TEMP_SENSOR_SCALE / scale_value
+        self.val_lcrit = self.read_val_min_max(None, "val_lcrit", self.scale)
+        self.val_hcrit = self.read_val_min_max(None, "val_hcrit", self.scale)
         self.refresh_attr()
 
     # ----------------------------------------------------------------------
@@ -1692,13 +1701,16 @@ class thermal_asic_sensor(thermal_module_sensor):
     def __init__(self, cmd_arg, sys_config, name, tc_logger):
         thermal_module_sensor.__init__(self, cmd_arg, sys_config, name, tc_logger)
         self.asic_fault_err = iterate_err_counter(tc_logger, name, CONST.SENSOR_FREAD_FAIL_TIMES)
+        scale_value = self.get_file_val(self.base_file_name + "_scale", def_val=1, scale=1)
+        self.scale = CONST.TEMP_SENSOR_SCALE / scale_value
+        self.val_lcrit = self.read_val_min_max(None, "val_lcrit", self.scale)
+        self.val_hcrit = self.read_val_min_max(None, "val_hcrit", self.scale)
         
     # ----------------------------------------------------------------------
     def sensor_configure(self):
         """
         @summary: this function calling on sensor start after initialization or suspend off
         """
-        # Disable kernel control for this thermal zone
         self.val_max = self.read_val_min_max("thermal/{}_temp_crit".format(self.base_file_name), "val_max", scale=self.scale)
         self.val_min = self.read_val_min_max("thermal/{}_temp_norm".format(self.base_file_name), "val_min", scale=self.scale)
 
@@ -2583,6 +2595,7 @@ class ThermalManagement(hw_managemet_file_op):
                           r'sodimm\d+':"add_sodimm_sensor",
                           r'sensor_amb':"add_amb_sensor",
                           r'drivetemp':"add_drivetemp_sensor",
+                          r'pch':"add_pch_sensor",
                           r'ibc\d*':"add_ibc_sensor",
                           r'pdb_pwr\d*':"add_pdb_pwr_sensor",
                           r'ctx_amb\d*':"add_connectx_sensor",
@@ -3095,11 +3108,14 @@ class ThermalManagement(hw_managemet_file_op):
         pwm_max = 0
         name = ""
         for key, val in pwm_list.items():
-            if val > pwm_max:
-                pwm_max = val
-                name = key
-            elif val == pwm_max and "total_err_cnt" in key:
-                name = key
+            try:
+                if val > pwm_max:
+                    pwm_max = val
+                    name = key
+                elif val == pwm_max and "total_err_cnt" in key:
+                    name = key
+            except:
+                self.log("Unaplicable pwm:{} for:{}".format(val, key))
         return pwm_max, name
 
     # ----------------------------------------------------------------------
@@ -3354,6 +3370,11 @@ class ThermalManagement(hw_managemet_file_op):
 
     # ----------------------------------------------------------------------
     def add_drivetemp_sensor(self, name):
+        in_file = "thermal/{}".format(name)
+        self._sensor_add_config("thermal_sensor", name, {"base_file_name": in_file})
+
+    # ----------------------------------------------------------------------
+    def add_pch_sensor(self, name):
         in_file = "thermal/{}".format(name)
         self._sensor_add_config("thermal_sensor", name, {"base_file_name": in_file})
 

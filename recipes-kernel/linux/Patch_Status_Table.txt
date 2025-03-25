@@ -314,6 +314,8 @@ Kernel-5.10
 |0304-platform-mellanox-mlx-platform-Add-support-for-new-N.patch  |                    | Downstream accepted                      |            | SN5640                                         |
 |0305-platform-mellanox-Downstream-Add-support-for-new-Nvi.patch  |                    | Downstream accepted                      |            | MQM9701                                        |
 |0306-platform-mellanox-Downstream-Add-support-DGX-flavor-.patch  |                    | Downstream accepted                      |            | SN5610d                                        |
+|0307-platform_data-mlxreg-Add-fields-for-interrupt-storm-.patch  |                    | Downstream accepted                      |            |                                                |
+|0308-platform-mellanox-mlxreg-hotplug-Add-support-for-han.patch  |                    | Downstream accepted                      |            |                                                |
 |0309-hwmon-pmbus-Add-support-for-MPS-Multi-phase-mp2869-c.patch  |                    | Feature pending; os[sonic,opt,nvos,dvs]  |            | mp2869                                         |
 |0310-hwmon-pmbus-Add-support-for-MPS-Multi-phase-mp29502-.patch  |                    | Feature pending; os[sonic,opt,nvos,dvs]  |            | mp29502                                        |
 |7001-mctp-Add-MCTP-base.patch                                    |                    | Downstream                               |            | MCTP                                           |
@@ -398,6 +400,8 @@ Kernel-5.10
 |9004-DS-OPT-mlxsw-minimal-Downstream-Disable-ethtool-interface.patch|                 | Downstream accepted                      |            |                                                |
 |9005-platform-mellanox-Downstream-Introduce-support-of-Nv.patch  |                    | Downstream;skip[sonic]                   |            |                                                |
 |9006-mlxsw-core_hwmon-Downstream-Fix-module-sensor-number-for-QM3200.patch|           | Downstream;skip[ALL];take[opt]           |            |                                                |
+|9007-platform-mellanox-mlx-platform-Change-register-0x28-.patch  |                    | Downstream;skip[sonic,cumulus]           |            |                                                |
+|9008-platform-mellanox-mlx-platform-Add-support-for-Q3450.patch  |                    | Downstream;skip[sonic,cumulus]           |            | Q3450                                          |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Kernel-5.14
@@ -710,6 +714,9 @@ Kernel-6.1
 |0100-platform-mellanox-mlxreg-io-Extend-number-of-hwmon-a.patch  |                    | Downstream accepted					  |            |                                                |
 |0101-hwmon-pmbus-Add-support-for-MPS-Multi-phase-mp2869-c.patch  |                    | Downstream accepted                      |            | mp2869                                         |
 |0102-hwmon-pmbus-Add-support-for-MPS-Multi-phase-mp29502-.patch  |                    | Downstream accepted                      |            | mp29502                                        |
+|0100-platform-mellanox-mlxreg-io-Extend-number-of-hwmon-a.patch  |                    | Downstream accepted					  |            |                                          |
+|0101-platform_data-mlxreg-Add-fields-for-interrupt-storm-.patch  |                    | Downstream accepted					  |            |                                                |
+|0102-platform-mellanox-mlxreg-hotplug-Add-support-for-han.patch  |                    | Downstream accepted					  |            |                                                |
 |8000-mlxsw-Use-weak-reverse-dependencies-for-firmware-fla.patch  |                    | Downstream accepted                      |            | Disable FW update                              |
 |8002-platform-mlx-platform-Downstream-Add-SPI-path-for-ra.patch  |                    | Downstream;skip[sonic,cumulus]           |            | Add SPI                                        |
 |8003-mlxsw-i2c-SONIC-ISSU-Prevent-transaction-execution-f.patch  |                    | Downstream accepted                      |            | Sonic/ISSU                                     |
@@ -729,6 +736,8 @@ Kernel-6.1
 |9004-platform-mellanox-Downstream-Introduce-support-of-Nv.patch  |                    | Downstream;skip[sonic,cumulus]           |            |                                                |
 |9006-mlxsw-core_hwmon-Downstream-Fix-module-sensor-number-for-QM3200.patch|           | Downstream;skip[ALL];take[opt]           |            |                                                |
 |9007-mlxsw-core-Downstream-Fix-uninitialized-variable.patch      |                    | Downstream accepted;skip[sonic]          |            |                                                |
+|9008-platform-mellanox-mlx-platform-Change-register-0x28-.patch  |                    | Downstream;skip[sonic,cumulus]           |            |                                                |
+|9009-platform-mellanox-mlx-platform-Add-support-for-Q3450.patch  |                    | Downstream;skip[sonic,cumulus]           |            | Q3450                                          |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Legend:

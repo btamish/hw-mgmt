@@ -618,6 +618,7 @@ ariel_cartridge_eeprom_connect_table=( 24c02 0x50 47 cable_cartridge1_eeprom \
 	24c02 0x50 50 cable_cartridge2_eeprom)
 
 n5110ld_vpd_connect_table=(24c512 0x51 2 vpd_info)
+n5110ld_virtual_vpd_connect_table=(24c512 0x51 10 vpd_info)
 
 # I2C busses naming.
 cfl_come_named_busses=( come-vr 15 come-amb 15 come-fru 16 )
@@ -1018,8 +1019,8 @@ add_cpu_board_to_connection_table()
 			;;
 		$CFL_CPU)
 			case $sku in
-				# MQM9700, MQM9701 P4697, P4262, P4300 removed A2D from CFL
-				HI130|HI142|HI152|HI157|HI158|HI159|HI173|HI174)
+				# Systems without A2D on COMEx
+				HI130|HI142|HI152|HI157|HI158|HI159|HI173|HI174|HI175)
 					cpu_connection_table=( ${cpu_type2_connection_table[@]} )
 					cpu_voltmon_connection_table=( ${cpu_type2_mps_voltmon_connection_table[@]} )
 					;;
@@ -1692,6 +1693,7 @@ mqm97xx_specific()
 		hotplug_psus=0
 		hotplug_pwrs=0
 		hotplug_pdbs=1
+		psu_count=0
 		add_i2c_dynamic_bus_dev_connection_table "${mqm97xx_pdb_connect_table[@]}"
 		echo C2P > $config_path/system_flow_capability
 		;;
@@ -2081,6 +2083,7 @@ sn5600d_specific()
 	hotplug_pwrs=0
 	hotplug_psus=0
 	hotplug_pdbs=1
+	psu_count=0
 	echo 7 > $config_path/fan_drwr_num
 	echo 4 > $config_path/cpld_num
 	echo 0 > "$config_path"/labels_ready
@@ -2195,24 +2198,24 @@ qm3xxx_specific()
 	if [ ! -e "$devtree_file" ]; then
 		if [ "$sku" == "HI157" ]; then
 			connect_table+=(${q3200_base_connect_table[@]})
-		else
+		elif [ "$sku" == "HI158" ]; then
 			connect_table+=(${q3400_base_connect_table[@]})
 		fi
 		add_cpu_board_to_connection_table $xdr_cpu_bus_offset
 	fi
-	# Set according to front fan max.
-	echo 21800 > $config_path/fan_max_speed
-	# Set as 20% of max speed
-	echo 4360 > $config_path/fan_min_speed
-	# Only reverse fans are supported
-	echo C2P > $config_path/system_flow_capability
-	echo 27500 > $config_path/psu_fan_max
-	# Set as 20% of max speed
-	echo 5500 > $config_path/psu_fan_min
 	i2c_comex_mon_bus_default=$((xdr_cpu_bus_offset+5))
 	i2c_bus_def_off_eeprom_cpu=$((xdr_cpu_bus_offset+6))
 
 	if [ "$sku" == "HI157" ]; then
+		# Set according to front fan max.
+		echo 21800 > $config_path/fan_max_speed
+		# Set as 20% of max speed
+		echo 4360 > $config_path/fan_min_speed
+		# Only reverse fans are supported
+		echo C2P > $config_path/system_flow_capability
+		echo 27500 > $config_path/psu_fan_max
+		# Set as 20% of max speed
+		echo 5500 > $config_path/psu_fan_min
 		max_tachos=10
 		hotplug_fans=5
 		hotplug_pwrs=4
@@ -2224,7 +2227,16 @@ qm3xxx_specific()
 		thermal_control_config="$thermal_control_configs_path/tc_config_q3200.json"
 		named_busses+=(${q3200_named_busses[@]})
 		asic_i2c_buses=(2 18)
-	else
+	elif [ "$sku" == "HI158" ]; then
+		# Set according to front fan max.
+		echo 21800 > $config_path/fan_max_speed
+		# Set as 20% of max speed
+		echo 4360 > $config_path/fan_min_speed
+		# Only reverse fans are supported
+		echo C2P > $config_path/system_flow_capability
+		echo 27500 > $config_path/psu_fan_max
+		# Set as 20% of max speed
+		echo 5500 > $config_path/psu_fan_min
 		max_tachos=20
 		hotplug_fans=10
 		hotplug_pwrs=8
@@ -2234,6 +2246,26 @@ qm3xxx_specific()
 		lm_sensors_config="$lm_sensors_configs_path/q3400_sensors.conf"
 		lm_sensors_labels="$lm_sensors_configs_path/q3400_sensors_labels.json"
 		thermal_control_config="$thermal_control_configs_path/tc_config_q3400.json"
+		named_busses+=(${q3400_named_busses[@]})
+		asic_i2c_buses=(2 18 34 50)
+	elif [ "$sku" == "HI175" ]; then
+		# Set according to front fan max.
+		echo 13800 > $config_path/fan_max_speed
+		# Set as 30% of max speed
+		echo 4140 > $config_path/fan_min_speed
+		# Only reverse fans are supported
+		echo C2P > $config_path/system_flow_capability
+		max_tachos=4
+		leakage_count=3
+		hotplug_fans=2
+		hotplug_pwrs=0
+		hotplug_psus=0
+		psu_count=0
+		minimal_unsupported=1
+		echo 7 > $config_path/cpld_num
+		lm_sensors_config="$lm_sensors_configs_path/q3450_sensors.conf"
+		lm_sensors_labels="$lm_sensors_configs_path/q3450_sensors_labels.json"
+		thermal_control_config="$thermal_control_configs_path/tc_config_q3450.json"
 		named_busses+=(${q3400_named_busses[@]})
 		asic_i2c_buses=(2 18 34 50)
 	fi
@@ -2249,7 +2281,10 @@ qm_qm3_common()
 		HI157)	# Q3200
 			qm3xxx_specific
 		;;
-		HI158)	# q3400
+		HI158)	# Q3400
+			qm3xxx_specific
+		;;
+		HI175)	# Q3450
 			qm3xxx_specific
 		;;
 		*)
@@ -2328,8 +2363,10 @@ n51xxld_specific()
 		esac
 		# Add VPD explicitly.
 		echo ${n5110ld_vpd_connect_table[0]} ${n5110ld_vpd_connect_table[1]} > /sys/bus/i2c/devices/i2c-${n5110ld_vpd_connect_table[2]}/new_device
+		if check_simx; then
+			echo ${n5110ld_virtual_vpd_connect_table[0]} ${n5110ld_virtual_vpd_connect_table[1]} > /sys/bus/i2c/devices/i2c-${n5110ld_virtual_vpd_connect_table[2]}/new_device
+		fi
 	fi
-	
 	asic_i2c_buses=(11 21)
 	echo 1 > $config_path/global_wp_wait_step
 	echo 20 > $config_path/global_wp_timeout
@@ -2408,6 +2445,11 @@ n51xxld_specific_cleanup()
 	unlink /dev/i2c-8
 	# Remove VPD explicitly.
 	echo ${n5110ld_vpd_connect_table[1]} > /sys/bus/i2c/devices/i2c-${n5110ld_vpd_connect_table[2]}/delete_device
+	if check_simx; then
+		echo ${n5110ld_virtual_vpd_connect_table[1]} > /sys/bus/i2c/devices/i2c-${n5110ld_virtual_vpd_connect_table[2]}/delete_device
+	fi
+
+
 }
 
 sn5640_specific()
@@ -2747,7 +2789,13 @@ set_config_data()
 	echo $hotplug_pdbs > $config_path/hotplug_pdbs
 	echo $hotplug_fans > $config_path/hotplug_fans
 	echo $hotplug_linecards > $config_path/hotplug_linecards
-	echo $leakage_count > $config_path/leakage_counter
+	echo $fan_speed_tolerance > $config_path/fan_speed_tolerance
+	echo $leakage_count > $config_path/leakage_num
+	if [ -v "thermal_control_config" ] && [ -f $thermal_control_config ]; then
+		cp $thermal_control_config $config_path/tc_config.json
+	else
+		cp $thermal_control_configs_path/tc_config_not_supported.json $config_path/tc_config.json
+	fi
 }
 
 connect_platform()
@@ -2948,7 +2996,7 @@ set_asic_pci_id()
 			asic_pci_id=$nv4_rev_a1_pci_id
 		fi
 		;;
-	HI157|HI162|HI166|HI167|HI169|HI170|HI176|HI177)
+	HI157|HI162|HI166|HI167|HI169|HI170|HI175|HI176|HI177)
 		asic_pci_id=${quantum3_pci_id}
 		;;
 	HI158)
@@ -3021,6 +3069,19 @@ set_asic_pci_id()
 		[ -z "$asics" ] && return
 		asic1_pci_bus_id=`echo $asics | awk '{print $3}'`
 		asic2_pci_bus_id=`echo $asics | awk '{print $2}'`
+		asic3_pci_bus_id=`echo $asics | awk '{print $1}'`
+		asic4_pci_bus_id=`echo $asics | awk '{print $4}'`
+		echo "$asic1_pci_bus_id" > "$config_path"/asic1_pci_bus_id
+		echo "$asic2_pci_bus_id" > "$config_path"/asic2_pci_bus_id
+		echo "$asic3_pci_bus_id" > "$config_path"/asic3_pci_bus_id
+		echo "$asic4_pci_bus_id" > "$config_path"/asic4_pci_bus_id
+		echo 4 > "$config_path"/asic_num
+		;;
+	HI175)
+		echo -n "$asics" | grep -c '^' > "$config_path"/asic_num
+		[ -z "$asics" ] && return
+		asic1_pci_bus_id=`echo $asics | awk '{print $2}'`
+		asic2_pci_bus_id=`echo $asics | awk '{print $3}'`
 		asic3_pci_bus_id=`echo $asics | awk '{print $1}'`
 		asic4_pci_bus_id=`echo $asics | awk '{print $4}'`
 		echo "$asic1_pci_bus_id" > "$config_path"/asic1_pci_bus_id
@@ -3115,6 +3176,11 @@ set_sodimms()
 
 	i2c_dir=$(ls -1d "$amd_snw_i2c_sodimm_dev"/i2c-*)
 	i2c_bus="${i2c_dir##*-}"
+	if check_simx; then
+		# i2c-designware emulattion is not available. For the virtual
+		# platforms that used AMD comex, sodimm sensor is defined at i2c-10
+		i2c_bus=10
+	fi
 	if [ -z "$i2c_bus" ]; then
 		log_err "Error: I2C bus of SODIMMs TS isn't found."
 		return 1
@@ -3157,7 +3223,7 @@ pre_devtr_init()
 		;;
 	VMOD0018)
 		case $sku in
-		HI158)
+		HI158|HI175)
 			echo 2 > "$config_path"/swb_brd_num
 			echo 32 > "$config_path"/swb_brd_bus_offset
 			;;
@@ -3232,6 +3298,7 @@ map_asic_pci_to_i2c_bus()
 
 do_start()
 {
+	init_sysfs_monitor_timestamp_files
 	create_symbolic_links
 	check_cpu_type
 	pre_devtr_init
