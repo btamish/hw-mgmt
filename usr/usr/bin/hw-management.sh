@@ -139,6 +139,7 @@ mctp_addr=""
 ndr_cpu_bus_offset=18
 ng800_cpu_bus_offset=34
 xdr_cpu_bus_offset=66
+q3401_cpu_bus_offset=67
 smart_switch_cpu_bus_offset=34
 
 connect_table=()
@@ -2306,11 +2307,11 @@ qm3xx1_specific()
 {
 	if [ ! -e "$devtree_file" ]; then
 		connect_table+=(${q3400_base_connect_table[@]})
-		add_cpu_board_to_connection_table $xdr_cpu_bus_offset
+		add_cpu_board_to_connection_table $q3401_cpu_bus_offset
 		add_i2c_dynamic_bus_dev_connection_table "${mqm97xx_pdb_connect_table[@]}"
 	fi
-	i2c_comex_mon_bus_default=$((xdr_cpu_bus_offset+5))
-	i2c_bus_def_off_eeprom_cpu=$((xdr_cpu_bus_offset+6))
+	i2c_comex_mon_bus_default=$((q3401_cpu_bus_offset+5))
+	i2c_bus_def_off_eeprom_cpu=$((q3401_cpu_bus_offset+6))
 	minimal_unsupported=1
 
 	# Set according to front fan max.

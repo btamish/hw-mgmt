@@ -5,6 +5,9 @@
 		"fan_amb" : "Ambient+Fan+Side+Temp",
 		"port_amb" : "Ambient+Port+Side+Temp",
 		"pdb_mos_amb" : "PDB+MOS+Temp",
+		"pdb_brd_amb" : "PDB+BRD+AMB+Temp",
+
+		"drivetemp" : "SSD+Temp",
 
 		"swb1_voltmon1_in1" : "PMIC-1+12V_VDD_ASIC1+Vol+In+1",
 		"swb1_voltmon1_in2" : "PMIC-1+ASIC1_VDD+Vol+Out+1",
@@ -137,11 +140,23 @@
 		"pdb_pwr_conv1_temp1" : "PDB-1+Conv+Temp+1",
 		"pdb_pwr_conv1_power1" : "PDB-1+Conv+power+In",
 		"pdb_pwr_conv1_power2" : "PDB-1+Conv+power+Out",
+		"pdb_pwr_conv2_in1" : "PDB-2+Conv+Vol+In+1",
+		"pdb_pwr_conv2_in2" : "PDB-2+Conv+Vol+Out+1",
+		"pdb_pwr_conv2_curr1" : "PDB-2+Conv+curr+In+1",
+		"pdb_pwr_conv2_curr2" : "PDB-2+Conv+curr+Out+1",
+		"pdb_pwr_conv2_temp1" : "PDB-2+Conv+Temp+1",
+		"pdb_pwr_conv2_power1" : "PDB-2+Conv+power+In",
+		"pdb_pwr_conv2_power2" : "PDB-2+Conv+power+Out",
 		"pdb_hotswap1_in1" : "HSC1+VinDC+Volt+In",
 		"pdb_hotswap1_in2" : "HSC1+VinDC+Volt+Out",
 		"pdb_hotswap1_curr1" : "HSC1+VinDC+curr+In",
 		"pdb_hotswap1_power1" : "HSC1+VinDC+Pwr+In",
 		"pdb_hotswap1_temp1" : "HSC1+VinDC+Temp",
+		"pdb_hotswap2_in1" : "HSC2+VinDC+Volt+In",
+		"pdb_hotswap2_in2" : "HSC2+VinDC+Volt+Out",
+		"pdb_hotswap2_curr1" : "HSC2+VinDC+curr+In",
+		"pdb_hotswap2_power1" : "HSC2+VinDC+Pwr+In",
+		"pdb_hotswap2_temp1" : "HSC2+VinDC+Temp",
 
 		"^fan1_(\\w+)$" : "Chassis_Fan_Drawer-1+RPM+1",
 		"^fan2_(\\w+)$" : "Chassis_Fan_Drawer-1+RPM+2",
@@ -160,12 +175,12 @@
 		"^fan15_(\\w+)$" : "Chassis_Fan_Drawer-8+RPM+1",
 		"^fan16_(\\w+)$" : "Chassis_Fan_Drawer-8+RPM+2",
 		
-		"fan_hotswap1_in1" : "HSC2+VinDC+Volt+In",
-		"fan_hotswap1_in2" : "HSC2+VinDC+Volt+Out",
-		"fan_hotswap1_curr1" : "HSC2+VinDC+curr+In",
-		"fan_hotswap1_power1" : "HSC2+VinDC+Pwr+In",
-		"fan_hotswap1_temp1" : "HSC2+VinDC+Temp"
+		"fan_hotswap1_in1" : "FAN+HSC1+VinDC+Volt+In",
+		"fan_hotswap1_in2" : "FAN+HSC1+VinDC+Volt+Out",
+		"fan_hotswap1_curr1" : "FAN+HSC1+VinDC+Curr+In",
+		"fan_hotswap1_power1" : "FAN+HSC1+VinDC+Pwr+In",
+		"fan_hotswap1_temp1" : "FAN+HSC1+VinDC+Temp"
 		},
-	"labels_scale_HI798_rev1_array" : {
+	"labels_scale_HI179_rev1_array" : {
 	}
 }
